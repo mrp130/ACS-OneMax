@@ -1,0 +1,54 @@
+N = 00;
+ant_size = 10;
+init_tao = 1/N;
+rho = 0.2;
+alpha = 0.2;
+beta = 2;
+q0 = 0.95;
+
+range = 0:1;
+tao = ones(N, length(range)) * init_tao;
+ants = randi([1 length(range)], ant_size, N);
+ants = range( ants );
+
+cycle = 1;
+best_fitness = 0;
+it_best_fitness = inf;
+
+while best_fitness(end) ~= N
+    probs = bsxfun(@rdivide, tao , sum(tao,2) );
+    q = rand(ant_size, N);
+    for i = 1:ant_size
+       for j = 1:N
+           if q(i,j) < q0
+            selected = exploit(probs(j,:));
+           else
+            selected = explore(probs(j,:));
+           end
+           ants(i,j) = range( selected );
+           tao(j, selected) = (1 - rho) * tao(j, selected) + rho * init_tao;
+       end
+    end
+    
+    it_fitness = fitness(ants);
+    it_best_fitness = max(it_fitness);
+    
+    best_ant = find(it_fitness == it_best_fitness);
+    best_ant = ants( best_ant(1), :);
+    
+    if it_best_fitness > max(best_fitness)
+        global_best_ant = best_ant;
+    end
+    
+    for i = 1:length(global_best_ant)
+        idx = find(global_best_ant(i) == range);
+        tao(i, idx) = (1-alpha) * tao(i, idx) + 1 / (N-it_best_fitness+1) * alpha;
+    end
+    
+    best_fitness = [best_fitness it_best_fitness];
+    cycle = cycle + 1;
+    disp( sprintf('cycle %d global best: %f, best iteration fitness: %f', cycle, max(best_fitness), it_best_fitness) );
+end
+
+plot(best_fitness);
+

@@ -1,0 +1,5 @@
+function fitness = fitness( input )
+    if min(size(input) == 1
+    fitness = sum(input(input == 1));
+end
+
